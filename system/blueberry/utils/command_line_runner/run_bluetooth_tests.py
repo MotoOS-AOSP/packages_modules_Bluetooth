@@ -196,11 +196,11 @@ def generate_dut_configs(gateway_stub):
   return base64.b64encode(dut_list.SerializeToString()).decode('utf-8')
 
 
-def generate_blaze_targets(session_config, gateway_stub):
-  """Generates and appends blaze test targets to a MobileHarness session.
+def generate_moto_targets(session_config, gateway_stub):
+  """Generates and appends moto test targets to a MobileHarness session.
 
   Args:
-    session_config: The SessionConfig object to append blaze test targets to.
+    session_config: The SessionConfig object to append moto test targets to.
     gateway_stub: An RPC2 stub object.
 
   Raises:
@@ -209,13 +209,13 @@ def generate_blaze_targets(session_config, gateway_stub):
   test_config_dict_list = [parse_flag_value(value) for value in FLAGS.bt_test]
 
   for test_config_dict in test_config_dict_list:
-    target = setting_pb2.BlazeTarget()
+    target = setting_pb2.MotoeTarget()
     if 'target' not in test_config_dict:
       raise TestConfigError('Must specify a target for bt_test: %s' %
                             test_config_dict)
     target.target_name = test_config_dict['target']
     target.test_flags = TEST_FLAGS % generate_dut_configs(gateway_stub)
-    session_config.blaze_target.append(target)
+    session_config.moto_target.append(target)
 
 
 def run_session():
@@ -227,7 +227,7 @@ def run_session():
   session_config = setting_pb2.SessionConfig()
   channel = rpcutil.GetNewChannel('blade:mobileharness-gateway')
   gateway_stub = gateway_service_pb2.GatewayService.NewRPC2Stub(channel=channel)
-  generate_blaze_targets(session_config, gateway_stub)
+  generate_moto_targets(session_config, gateway_stub)
   request = gateway_service_pb2.RunSessionRequest()
   request.session_config.CopyFrom(session_config)
   response = gateway_stub.RunSession(request)
